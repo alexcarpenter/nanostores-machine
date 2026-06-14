@@ -1,5 +1,5 @@
-const DONE = 'nanostores-machines:invoke:done'
-const ERROR = 'nanostores-machines:invoke:error'
+const DONE = 'nanostores-machine:invoke:done'
+const ERROR = 'nanostores-machine:invoke:error'
 
 let transition = (event, target, opts) => ({
   action: opts.action,

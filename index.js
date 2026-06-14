@@ -62,14 +62,14 @@ let runStarts = ($machine, stateConfig, cleanups) => {
 
 let validate = (initial, states) => {
   if (!states[initial]) {
-    throw new Error(`nanostores-machines unknown initial state "${initial}"`)
+    throw new Error(`nanostores-machine unknown initial state "${initial}"`)
   }
   for (let stateName in states) {
     let config = states[stateName]
     for (let transition of config.on.concat(config.always)) {
       if (!states[transition.target]) {
         throw new Error(
-          `nanostores-machines unknown transition target "${transition.target}"`
+          `nanostores-machine unknown transition target "${transition.target}"`
         )
       }
     }
@@ -108,7 +108,7 @@ export let machine = (initial, states, context, opts = {}) => {
     if (next) {
       if (loop >= loopLimit) {
         if (process.env.NODE_ENV !== 'production') {
-          throw new Error('nanostores-machines always transition loop limit')
+          throw new Error('nanostores-machine always transition loop limit')
         }
         return
       }
@@ -151,7 +151,7 @@ export let machine = (initial, states, context, opts = {}) => {
       typeof event?.type !== 'string'
     ) {
       throw new Error(
-        'nanostores-machines event must be a string or object with a string type'
+        'nanostores-machine event must be a string or object with a string type'
       )
     }
 
