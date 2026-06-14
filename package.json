@@ -1,6 +1,6 @@
 {
   "name": "nanostores-machine",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Tiny state machines for Nano Stores",
   "keywords": [
     "finite-state-machine",
