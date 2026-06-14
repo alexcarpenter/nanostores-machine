@@ -53,6 +53,42 @@ export const $form = machine(
 $form.send({ type: 'submit', time: Date.now() })
 ```
 
+For stronger context and event inference, create typed helpers:
+
+```ts
+import { setup } from 'nanostores-machines'
+
+interface LoginContext {
+  username: string
+}
+
+type LoginEvent =
+  | { type: 'submit'; username: string }
+  | { type: 'cancel' }
+
+let { machine, state, transition } = setup<LoginContext, LoginEvent>()
+
+export const $login = machine(
+  'idle',
+  {
+    idle: state(
+      transition('submit', 'submitting', {
+        guard: ({ event }) => event.username.length > 0,
+        reduce: ({ context, event }) => ({
+          ...context,
+          username: event.username
+        })
+      })
+    ),
+    submitting: state(transition('cancel', 'idle'))
+  },
+  { username: '' }
+)
+
+$login.send({ type: 'submit', username: 'alex' })
+$login.send('cancel')
+```
+
 ### Lifecycle
 
 ```js
@@ -180,6 +216,12 @@ $machine.send(event)
 ```
 
 Events can be strings or objects with a `type` string.
+
+### `setup<Context, Event>()`
+
+Returns typed `machine`, `state`, and `transition` helpers. Use it when you want
+callback arguments and `send()` calls to be checked against your context and
+event union.
 
 ### `state(...transitions)`
 

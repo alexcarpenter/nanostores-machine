@@ -2,6 +2,72 @@ import type { WritableAtom } from 'nanostores'
 
 export type EventObject = { type: string; [key: string]: unknown }
 export type Event = string | EventObject
+type MaybeArray<Value> = Value | Value[]
+
+type EventName<MachineEvent> = MachineEvent extends string
+  ? MachineEvent
+  : MachineEvent extends { type: infer Type extends string }
+    ? Type
+    : never
+
+type EventFor<MachineEvent, Type> = MachineEvent extends string
+  ? Type extends MachineEvent
+    ? Type
+    : never
+  : MachineEvent extends { type: Type }
+    ? MachineEvent
+    : never
+
+type EmptyEventName<MachineEvent> = MachineEvent extends string
+  ? MachineEvent
+  : MachineEvent extends { type: infer Type extends string }
+    ? Exclude<keyof MachineEvent, 'type'> extends never
+      ? Type
+      : never
+    : never
+
+type SendEvent<MachineEvent> =
+  | MachineEvent
+  | EmptyEventName<MachineEvent>
+
+type LiteralString<Value> = Value extends string
+  ? string extends Value
+    ? never
+    : Value
+  : never
+
+type TransitionTarget<Value> = Value extends Transition<any, infer Target, any, any, any>
+  ? LiteralString<Target>
+  : never
+
+type Targets<Value> = Value extends readonly unknown[]
+  ? TransitionTarget<Value[number]>
+  : TransitionTarget<Value>
+
+type EntryTargets<Value> = Value extends readonly unknown[]
+  ? EntryTargets<Value[number]>
+  : Value extends EntryStart<any, any, infer EntryTransitions>
+    ? Targets<EntryTransitions>
+    : never
+
+type StateTargets<Value> = Value extends StateConfig<
+  infer On,
+  infer Always,
+  infer Entry,
+  any
+>
+  ? Targets<On> | Targets<Always> | EntryTargets<Entry>
+  : never
+
+type AllTargets<States> = {
+  [Name in keyof States]: StateTargets<States[Name]>
+}[keyof States]
+
+type InvalidTargets<States> = Exclude<AllTargets<States>, keyof States & string>
+
+type TargetCheck<States> = InvalidTargets<States> extends never
+  ? unknown
+  : { __invalid_transition_targets__: InvalidTargets<States> }
 
 export interface Snapshot<State extends string, Context> {
   state: State
@@ -28,73 +94,137 @@ export interface TransitionOptions<
 }
 
 export interface Transition<
-  EventType extends string | null,
+  Type extends string | null,
   Target extends string,
   State extends string = string,
-  Context = any
+  Context = any,
+  MachineEvent extends Event | undefined = Event
 > {
-  event: EventType
+  event: Type
   target: Target
-  guard?: TransitionOptions<State, Context>['guard']
-  reduce?: TransitionOptions<State, Context>['reduce']
-  action?: TransitionOptions<State, Context>['action']
+  guard?: TransitionOptions<State, Context, MachineEvent>['guard']
+  reduce?: TransitionOptions<State, Context, MachineEvent>['reduce']
+  action?: TransitionOptions<State, Context, MachineEvent>['action']
   start?: (machine: MachineStore<State, Context>) => () => void
 }
 
-export interface EntryStart<State extends string = string, Context = any> {
+export interface EntryStart<
+  State extends string = string,
+  Context = any,
+  EntryTransitions = Transition<string | null, string, State, Context>
+> {
   start(machine: MachineStore<State, Context>): () => void
-  transitions?: Transition<string | null, string, State, Context>[]
+  transitions?: EntryTransitions[]
 }
 
-export interface StateConfig<State extends string = string, Context = any> {
-  on?: Transition<string | null, string, State, Context> | Transition<string | null, string, State, Context>[]
-  always?: Transition<string | null, string, State, Context> | Transition<string | null, string, State, Context>[]
-  entry?:
-    | ((args: CallbackArgs<State, Context, Event | undefined>) => void)
-    | EntryStart<State, Context>
-    | Array<
-        | ((args: CallbackArgs<State, Context, Event | undefined>) => void)
-        | EntryStart<State, Context>
-      >
-  exit?: (args: CallbackArgs<State, Context, Event | undefined>) => void
+export interface StateConfig<
+  On = Transition<string | null, string, any, any, any>,
+  Always = Transition<string | null, string, any, any, any>,
+  Entry =
+    | ((args: CallbackArgs<string, any, Event | undefined>) => void)
+    | EntryStart,
+  Context = any
+> {
+  on?: MaybeArray<On>
+  always?: MaybeArray<Always>
+  entry?: MaybeArray<Entry>
+  exit?: (args: CallbackArgs<string, Context, Event | undefined>) => void
   final?: boolean
 }
 
-export interface MachineStore<State extends string, Context>
-  extends WritableAtom<Snapshot<State, Context>> {
-  send(event: Event): void
+export interface MachineStore<
+  State extends string,
+  Context,
+  MachineEvent extends Event = Event
+> extends WritableAtom<Snapshot<State, Context>> {
+  send(event: SendEvent<MachineEvent>): void
 }
 
 export function machine<
-  const States extends Record<string, StateConfig>,
+  const States extends object,
   Initial extends keyof States & string,
   Context = undefined
 >(
   initial: Initial,
-  states: States,
+  states: States & TargetCheck<States>,
   context?: Context,
   opts?: { loopLimit?: number }
 ): MachineStore<keyof States & string, Context>
 
 export function state<
-  State extends string = string,
-  Context = any
+  const StateTransitions extends Transition<string | null, string, any, any, any>[]
 >(
-  ...transitions: Transition<string | null, string, State, Context>[]
-): StateConfig<State, Context>
+  ...transitions: StateTransitions
+): StateConfig<StateTransitions, never, never>
 
-export function state<
-  State extends string = string,
-  Context = any
->(config: StateConfig<State, Context>): StateConfig<State, Context>
+export function state<const Config extends StateConfig>(
+  config: Config
+): Config
 
 export function transition<
-  EventType extends string | null,
+  Type extends string | null,
   Target extends string,
   State extends string = string,
   Context = any
 >(
-  event: EventType,
+  event: Type,
   target: Target,
-  opts?: TransitionOptions<State, Context, EventType extends string ? { type: EventType } : undefined>
-): Transition<EventType, Target, State, Context>
+  opts?: TransitionOptions<
+    State,
+    Context,
+    Type extends string ? { type: Type } : undefined
+  >
+): Transition<
+  Type,
+  Target,
+  State,
+  Context,
+  Type extends string ? { type: Type } : undefined
+>
+
+export interface TypedSetup<Context, MachineEvent extends Event> {
+  machine<
+    const States extends object,
+    Initial extends keyof States & string
+  >(
+    initial: Initial,
+    states: States & TargetCheck<States>,
+    context: Context,
+    opts?: { loopLimit?: number }
+  ): MachineStore<keyof States & string, Context, MachineEvent>
+
+  state<
+    const StateTransitions extends Transition<string | null, string, any, any, any>[]
+  >(
+    ...transitions: StateTransitions
+  ): StateConfig<StateTransitions, never, never, Context>
+
+  state<const Config extends StateConfig<any, any, any, Context>>(
+    config: Config
+  ): Config
+
+  transition<
+    Type extends EventName<MachineEvent> | null,
+    Target extends string,
+    State extends string = string
+  >(
+    event: Type,
+    target: Target,
+    opts?: TransitionOptions<
+      State,
+      Context,
+      Type extends null ? undefined : EventFor<MachineEvent, Type>
+    >
+  ): Transition<
+    Type,
+    Target,
+    State,
+    Context,
+    Type extends null ? undefined : EventFor<MachineEvent, Type>
+  >
+}
+
+export function setup<
+  Context,
+  MachineEvent extends Event = Event
+>(): TypedSetup<Context, MachineEvent>

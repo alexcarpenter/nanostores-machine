@@ -165,6 +165,9 @@ export let machine = (initial, states, context, opts = {}) => {
 export let state = (...args) => normalizeState(args)
 
 /* @__NO_SIDE_EFFECTS__ */
+export let setup = () => ({ machine, state, transition })
+
+/* @__NO_SIDE_EFFECTS__ */
 export let transition = (event, target, opts = {}) => ({
   action: opts.action,
   event: event == null ? ANY : event,
