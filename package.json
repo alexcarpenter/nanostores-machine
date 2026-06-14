@@ -24,6 +24,7 @@
   "types": "./index.d.ts",
   "files": [
     "delay",
+    "debug",
     "index.d.ts",
     "index.js",
     "invoke",
@@ -39,6 +40,10 @@
     "./delay": {
       "types": "./delay/index.d.ts",
       "default": "./delay/index.js"
+    },
+    "./debug": {
+      "types": "./debug/index.d.ts",
+      "default": "./debug/index.js"
     },
     "./invoke": {
       "types": "./invoke/index.d.ts",
@@ -88,6 +93,13 @@
         "./delay/index.js": "{ delay }"
       },
       "limit": "250 B"
+    },
+    {
+      "name": "Debug",
+      "import": {
+        "./debug/index.js": "{ debug }"
+      },
+      "limit": "300 B"
     },
     {
       "name": "Invoke",

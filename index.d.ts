@@ -138,6 +138,13 @@ export interface MachineStore<
   MachineEvent extends Event = Event
 > extends WritableAtom<Snapshot<State, Context>> {
   send(event: SendEvent<MachineEvent>): void
+  listenTransitions(
+    listener: (transition: {
+      event: SendEvent<MachineEvent>
+      from: Snapshot<State, Context>
+      to: Snapshot<State, Context>
+    }) => void
+  ): () => void
 }
 
 export function machine<

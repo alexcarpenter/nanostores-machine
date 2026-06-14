@@ -6,7 +6,8 @@ Tiny flat state machines for [Nano Stores](https://github.com/nanostores/nanosto
   Nano Stores.
 * **Nano Stores native.** A machine is a store with `get()`, `listen()`,
   `subscribe()`, and `send()`.
-* **Tree-shakable.** Timers and async services live in separate entrypoints.
+* **Tree-shakable.** Timers, async services, and debugging live in separate
+  entrypoints.
 * **Flat by design.** No actors, nested states, parallel states, or XState
   compatibility layer in core.
 
@@ -169,6 +170,24 @@ const $user = machine('loading', {
 Invoke ignores late promise results after state exit and aborts the provided
 `AbortSignal` on cleanup.
 
+### Debug
+
+Transition logging is optional:
+
+```js
+import { debug } from 'nanostores-machines/debug'
+
+let stop = debug($user, {
+  name: 'user'
+})
+```
+
+Logs:
+
+```txt
+[user] loading -- done --> ready
+```
+
 ## Integration
 
 ### React
@@ -260,6 +279,19 @@ transition('submit', 'loading', {
 ### `delay(ms, target, opts?)`
 
 Creates a delayed transition from `nanostores-machines/delay`.
+
+### `debug(machine, opts?)`
+
+Logs transitions from `nanostores-machines/debug`. Options:
+
+```ts
+{
+  name?: string
+  event?: boolean
+  snapshot?: boolean
+  logger?: (...args: any[]) => void
+}
+```
 
 ### `invoke(opts)`
 

@@ -87,6 +87,7 @@ export let machine = (initial, states, context, opts = {}) => {
     state: initial
   })
   let cleanups = []
+  let listeners = []
   let loopLimit = opts.loopLimit || 100
 
   let cleanDelay = () => {
@@ -126,13 +127,21 @@ export let machine = (initial, states, context, opts = {}) => {
 
     cleanDelay()
     from?.exit?.({ ...snapshot, event })
-    $machine.set({
+    let nextSnapshot = {
       context: nextContext,
       done: !!to?.final,
       state: target
-    })
+    }
+    $machine.set(nextSnapshot)
     enter(target, event, loop)
     transition.action?.({ ...$machine.get(), event })
+    for (let listener of listeners) {
+      listener({
+        event,
+        from: snapshot,
+        to: $machine.get()
+      })
+    }
   }
 
   $machine.send = event => {
@@ -157,6 +166,14 @@ export let machine = (initial, states, context, opts = {}) => {
     enter(initial)
     return cleanDelay
   })
+
+  $machine.listenTransitions = listener => {
+    listeners.push(listener)
+    return () => {
+      let index = listeners.indexOf(listener)
+      if (index !== -1) listeners.splice(index, 1)
+    }
+  }
 
   return $machine
 }

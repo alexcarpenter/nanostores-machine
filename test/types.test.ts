@@ -1,4 +1,5 @@
 import { machine, setup, state, transition } from '../index.js'
+import { debug } from '../debug/index.js'
 import { delay } from '../delay/index.js'
 import { invoke } from '../invoke/index.js'
 
@@ -90,3 +91,10 @@ $login.send({ type: 'resolve', token: 'secret' })
 let loginSnapshot = $login.get()
 loginSnapshot.context.username satisfies string
 loginSnapshot.state satisfies 'idle' | 'submitting' | 'success'
+
+debug($login, {
+  logger: message => {
+    message satisfies string
+  },
+  name: 'login'
+})

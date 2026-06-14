@@ -13,6 +13,7 @@
   "include": [
     "index.d.ts",
     "delay/index.d.ts",
+    "debug/index.d.ts",
     "invoke/index.d.ts",
     "test/types.test.ts"
   ]
