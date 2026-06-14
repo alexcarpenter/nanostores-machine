@@ -53,7 +53,7 @@
   },
   "scripts": {
     "prepublishOnly": "pnpm test",
-    "release": "clean-publish --access public --package-manager pnpm",
+    "release": "pnpm test && clean-publish --access public --package-manager pnpm",
     "test": "pnpm run /^test:/",
     "test:lint": "oxlint",
     "test:runtime": "node --test test/*.test.js",
@@ -77,7 +77,10 @@
     "typescript": "^5.0.0"
   },
   "clean-publish": {
-    "cleanDocs": true
+    "cleanDocs": true,
+    "packageManagerOptions": [
+      "--no-git-checks"
+    ]
   },
   "size-limit": [
     {
