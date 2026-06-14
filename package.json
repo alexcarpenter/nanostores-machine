@@ -1,0 +1,100 @@
+{
+  "name": "nanostores-machines",
+  "version": "1.0.0",
+  "description": "Tiny state machines for Nano Stores",
+  "keywords": [
+    "finite-state-machine",
+    "fsm",
+    "nanostores",
+    "state",
+    "state-machine"
+  ],
+  "license": "MIT",
+  "author": "Alex Carpenter",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexcarpenter/nanostores-machines.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexcarpenter/nanostores-machines/issues"
+  },
+  "homepage": "https://github.com/alexcarpenter/nanostores-machines#readme",
+  "type": "module",
+  "sideEffects": false,
+  "types": "./index.d.ts",
+  "files": [
+    "delay",
+    "index.d.ts",
+    "index.js",
+    "invoke",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./delay": {
+      "types": "./delay/index.d.ts",
+      "default": "./delay/index.js"
+    },
+    "./invoke": {
+      "types": "./invoke/index.d.ts",
+      "default": "./invoke/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "prepublishOnly": "pnpm test",
+    "release": "clean-publish --access public --package-manager pnpm",
+    "test": "pnpm run /^test:/",
+    "test:lint": "oxlint",
+    "test:runtime": "node --test test/*.test.js",
+    "test:size": "size-limit",
+    "test:types": "check-dts"
+  },
+  "packageManager": "pnpm@10.32.1",
+  "peerDependencies": {
+    "nanostores": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^12.0.0",
+    "check-dts": "^1.0.0",
+    "clean-publish": "^7.1.0",
+    "nanostores": "^1.0.0",
+    "oxlint": "^1.69.0",
+    "size-limit": "^12.0.0",
+    "typescript": "^5.0.0"
+  },
+  "clean-publish": {
+    "cleanDocs": true
+  },
+  "size-limit": [
+    {
+      "name": "Core",
+      "import": {
+        "./index.js": "{ machine, state, transition }"
+      },
+      "limit": "900 B"
+    },
+    {
+      "name": "Delay",
+      "import": {
+        "./delay/index.js": "{ delay }"
+      },
+      "limit": "250 B"
+    },
+    {
+      "name": "Invoke",
+      "import": {
+        "./invoke/index.js": "{ invoke }"
+      },
+      "limit": "450 B"
+    }
+  ]
+}

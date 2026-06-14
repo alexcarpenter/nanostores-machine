@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "declaration": false,
+    "emitDeclarationOnly": false,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "strict": true,
+    "target": "ES2020"
+  },
+  "include": [
+    "index.d.ts",
+    "delay/index.d.ts",
+    "invoke/index.d.ts",
+    "test/types.test.ts"
+  ]
+}
