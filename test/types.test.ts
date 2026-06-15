@@ -2,6 +2,13 @@ import { machine, setup, state, transition } from '../index.js'
 import { debug } from '../debug/index.js'
 import { delay } from '../delay/index.js'
 import { invoke } from '../invoke/index.js'
+import {
+  machine as nestedMachine,
+  onDone,
+  setup as nestedSetup,
+  state as nestedState,
+  transition as nestedTransition
+} from '../nested/index.js'
 
 let $form = machine(
   'idle',
@@ -98,3 +105,69 @@ debug($login, {
   },
   name: 'login'
 })
+
+let $nested = nestedMachine(
+  'auth',
+  {
+    auth: nestedState({
+      initial: 'idle',
+      onDone: onDone('complete', {
+        reduce: ({ context, event }) => {
+          event.type satisfies 'nanostores-machine:done'
+          event.state satisfies string
+          return {
+            ...context,
+            completed: event.state
+          }
+        }
+      }),
+      states: {
+        idle: nestedState(nestedTransition('submit', 'auth.loading')),
+        loading: nestedState(nestedTransition('resolve', 'auth.success')),
+        success: nestedState({ final: true })
+      }
+    }),
+    complete: nestedState({ final: true })
+  },
+  { completed: '' }
+)
+
+$nested.send('submit')
+$nested.send({ type: 'resolve' })
+
+let nestedSnapshot = $nested.get()
+nestedSnapshot.context.completed satisfies string
+nestedSnapshot.state satisfies
+  | 'auth'
+  | 'auth.idle'
+  | 'auth.loading'
+  | 'auth.success'
+  | 'complete'
+
+let nestedTyped = nestedSetup<LoginContext, LoginEvent>()
+
+let $nestedLogin = nestedTyped.machine(
+  'auth',
+  {
+    auth: nestedTyped.state({
+      initial: 'idle',
+      states: {
+        idle: nestedTyped.state(
+          nestedTyped.transition('submit', 'auth.submitting', {
+            reduce: ({ context, event }) => ({
+              ...context,
+              username: event.username
+            })
+          })
+        ),
+        submitting: nestedTyped.state(
+          nestedTyped.transition('cancel', 'auth.idle')
+        )
+      }
+    })
+  },
+  { username: '' }
+)
+
+$nestedLogin.send({ type: 'submit', username: 'alex' })
+$nestedLogin.send('cancel')

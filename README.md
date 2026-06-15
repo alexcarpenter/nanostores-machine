@@ -9,7 +9,8 @@ Tiny flat state machines for [Nano Stores](https://github.com/nanostores/nanosto
 * **Tree-shakable.** Timers, async services, and debugging live in separate
   entrypoints.
 * **Flat by design.** No actors, nested states, parallel states, or XState
-  compatibility layer in core.
+  compatibility layer in core. Nested states are available from an optional
+  entrypoint.
 
 ```js
 import { machine, state, transition } from 'nanostores-machine'
@@ -170,6 +171,53 @@ const $user = machine('loading', {
 Invoke ignores late promise results after state exit and aborts the provided
 `AbortSignal` on cleanup.
 
+### Nested States
+
+Compound state support is optional:
+
+```js
+import { machine, onDone, state, transition } from 'nanostores-machine/nested'
+
+const $auth = machine('auth', {
+  auth: state({
+    initial: 'idle',
+    on: [transition('cancel', 'signedOut')],
+    onDone: onDone('complete'),
+    states: {
+      idle: state(transition('submit', 'auth.loading')),
+      loading: state(transition('resolve', 'auth.success')),
+      success: state({ final: true })
+    }
+  }),
+  complete: state({ final: true }),
+  signedOut: state()
+})
+
+$auth.send('submit')
+$auth.get().state //=> 'auth.loading'
+```
+
+Nested machines keep the same snapshot shape as flat machines. The active state
+is a dot path string, transition targets must use explicit full paths, and
+parent transitions are used when the active child does not handle an event.
+Parent states are grouping and completion scopes; lifecycle work belongs in leaf
+states.
+
+When a child state with `final: true` is entered, its parent `onDone` transition
+is checked. `onDone(target, opts?)` supports `guard`, `reduce`, and `action`.
+Callbacks receive a completion event:
+
+```ts
+{
+  type: 'nanostores-machine:done',
+  state: 'auth.success',
+  context
+}
+```
+
+Nested machines do not support relative targets, history states, parallel
+states, or XState compatibility.
+
 ### Debug
 
 Transition logging is optional:
@@ -241,6 +289,8 @@ Events can be strings or objects with a `type` string.
 Returns typed `machine`, `state`, and `transition` helpers. Use it when you want
 callback arguments and `send()` calls to be checked against your context and
 event union.
+
+The nested entrypoint also returns `onDone` from `setup()`.
 
 ### `state(...transitions)`
 

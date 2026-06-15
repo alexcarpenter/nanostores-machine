@@ -15,6 +15,7 @@
     "delay/index.d.ts",
     "debug/index.d.ts",
     "invoke/index.d.ts",
+    "nested/index.d.ts",
     "test/types.test.ts"
   ]
 }

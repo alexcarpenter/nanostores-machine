@@ -28,6 +28,8 @@
     "index.d.ts",
     "index.js",
     "invoke",
+    "nested",
+    "shared.js",
     "LICENSE",
     "README.md",
     "CHANGELOG.md"
@@ -48,6 +50,10 @@
     "./invoke": {
       "types": "./invoke/index.d.ts",
       "default": "./invoke/index.js"
+    },
+    "./nested": {
+      "types": "./nested/index.d.ts",
+      "default": "./nested/index.js"
     },
     "./package.json": "./package.json"
   },
@@ -110,6 +116,13 @@
         "./invoke/index.js": "{ invoke }"
       },
       "limit": "450 B"
+    },
+    {
+      "name": "Nested",
+      "import": {
+        "./nested/index.js": "{ machine, state, transition, onDone }"
+      },
+      "limit": "1.1 kB"
     }
   ]
 }

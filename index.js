@@ -1,64 +1,5 @@
 import { atom, onMount } from 'nanostores'
-
-const ANY = Symbol()
-
-let typeOf = event => (typeof event === 'string' ? event : event.type)
-
-let list = value => (Array.isArray(value) ? value : value ? [value] : [])
-
-let entryTransitions = entry => {
-  let transitions = []
-  for (let item of list(entry)) {
-    transitions = transitions.concat(list(item?.transitions))
-  }
-  return transitions
-}
-
-let normalizeState = args => {
-  if (
-    args.length === 1 &&
-    !args[0]?.event &&
-    !args[0]?.target &&
-    !args[0]?.start
-  ) {
-    let config = args[0]
-    return {
-      always: list(config.always),
-      entry: config.entry,
-      exit: config.exit,
-      final: !!config.final,
-      on: list(config.on).concat(entryTransitions(config.entry))
-    }
-  }
-  return {
-    always: [],
-    final: false,
-    on: args
-  }
-}
-
-let findTransition = (transitions, event, snapshot) => {
-  for (let transition of transitions) {
-    if (transition.event === ANY || transition.event === typeOf(event)) {
-      if (!transition.guard || transition.guard({ ...snapshot, event })) {
-        return transition
-      }
-    }
-  }
-}
-
-let runStarts = ($machine, stateConfig, cleanups) => {
-  for (let entry of list(stateConfig.entry)) {
-    if (entry.start) {
-      cleanups.push(entry.start($machine))
-    }
-  }
-  for (let transition of stateConfig.on) {
-    if (transition.start) {
-      cleanups.push(transition.start($machine))
-    }
-  }
-}
+import { ANY, findTransition, list, normalizeState, runStarts } from './shared.js'
 
 let validate = (initial, states) => {
   if (!states[initial]) {
@@ -102,7 +43,9 @@ export let machine = (initial, states, context, opts = {}) => {
     }
     if (config?.final) return
 
-    runStarts($machine, config, cleanups)
+    runStarts($machine, config, cleanup => {
+      cleanups.push(cleanup)
+    })
 
     let next = findTransition(config.always, event, $machine.get())
     if (next) {
