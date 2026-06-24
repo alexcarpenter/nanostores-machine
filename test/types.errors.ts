@@ -1,4 +1,9 @@
 import { setup } from '../index.js'
+import {
+  machine as nestedMachine,
+  state as nestedState,
+  transition as nestedTransition
+} from '../nested/index.js'
 
 interface LoginContext {
   username: string
@@ -46,4 +51,19 @@ typed.machine(
     )
   },
   { username: '' }
+)
+
+// THROWS __invalid_transition_targets__
+nestedMachine(
+  'auth',
+  {
+    auth: nestedState({
+      initial: 'idle',
+      states: {
+        idle: nestedState(
+          nestedTransition('submit', 'auth.missing')
+        )
+      }
+    })
+  }
 )
