@@ -195,13 +195,15 @@ const $auth = machine('auth', {
 
 $auth.send('submit')
 $auth.get().state //=> 'auth.loading'
+$auth.matches('auth') //=> true
+$auth.matches('auth.loading') //=> true
 ```
 
 Nested machines keep the same snapshot shape as flat machines. The active state
 is a dot path string, transition targets must use explicit full paths, and
 parent transitions are used when the active child does not handle an event.
 Parent states are grouping and completion scopes; lifecycle work belongs in leaf
-states.
+states. `matches()` returns `true` for the active state or any of its ancestors.
 
 When a child state with `final: true` is entered, its parent `onDone` transition
 is checked. `onDone(target, opts?)` supports `guard`, `reduce`, and `action`.

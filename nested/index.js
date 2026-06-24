@@ -103,13 +103,17 @@ let flatten = (root, states, flat = {}, parent = '', parents = []) => {
 }
 
 /* @__NO_SIDE_EFFECTS__ */
-export let machine = (initial, states, context, opts) =>
-  flatMachine(
+export let machine = (initial, states, context, opts) => {
+  let $machine = flatMachine(
     resolveInitial(states, initial),
     flatten(states, states),
     context,
     opts
   )
+  $machine.matches = query =>
+    ($machine.get().state + '.').startsWith(query + '.')
+  return $machine
+}
 
 /* @__NO_SIDE_EFFECTS__ */
 export let onDone = (target, opts) => transition(DONE, target, opts)

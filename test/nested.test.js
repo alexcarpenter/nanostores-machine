@@ -38,6 +38,29 @@ test('transitions with explicit dot-path targets', () => {
   equal($machine.get().state, 'auth.loading')
 })
 
+test('matches exact and ancestor states', () => {
+  let $machine = machine('auth', {
+    auth: state({
+      initial: 'idle',
+      states: {
+        idle: state(transition('submit', 'auth.loading')),
+        loading: state()
+      }
+    }),
+    signedOut: state()
+  })
+
+  equal($machine.matches('auth'), true)
+  equal($machine.matches('auth.idle'), true)
+  equal($machine.matches('auth.loading'), false)
+  equal($machine.matches('signedOut'), false)
+
+  $machine.send('submit')
+  equal($machine.matches('auth'), true)
+  equal($machine.matches('auth.loading'), true)
+  equal($machine.matches('auth.idle'), false)
+})
+
 test('falls back to parent transitions', () => {
   let $machine = machine('auth', {
     auth: state({

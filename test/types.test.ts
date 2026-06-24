@@ -134,6 +134,8 @@ let $nested = nestedMachine(
 
 $nested.send('submit')
 $nested.send({ type: 'resolve' })
+$nested.matches('auth') satisfies boolean
+$nested.matches('auth.loading') satisfies boolean
 
 let nestedSnapshot = $nested.get()
 nestedSnapshot.context.completed satisfies string

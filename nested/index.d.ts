@@ -196,6 +196,7 @@ export interface MachineStore<
   MachineEvent extends Event = Event
 > extends WritableAtom<Snapshot<State, Context>> {
   send(event: SendEvent<MachineEvent>): void
+  matches(state: State): boolean
   listenTransitions(
     listener: (transition: {
       event: SendEvent<MachineEvent> | CompletionEvent<State, Context>
