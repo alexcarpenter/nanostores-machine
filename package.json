@@ -1,5 +1,5 @@
 {
-  "name": "nanostores-machine",
+  "name": "@alexcarpenter/machine",
   "version": "0.1.0",
   "description": "Tiny state machines for Nano Stores",
   "keywords": [
@@ -13,12 +13,12 @@
   "author": "Alex Carpenter",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alexcarpenter/nanostores-machine.git"
+    "url": "git+https://github.com/alexcarpenter/machine.git"
   },
   "bugs": {
-    "url": "https://github.com/alexcarpenter/nanostores-machine/issues"
+    "url": "https://github.com/alexcarpenter/machine/issues"
   },
-  "homepage": "https://github.com/alexcarpenter/nanostores-machine#readme",
+  "homepage": "https://github.com/alexcarpenter/machine#readme",
   "type": "module",
   "sideEffects": false,
   "publishConfig": {
