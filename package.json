@@ -1,6 +1,6 @@
 {
   "name": "@alexcarpenter/machine",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tiny state machines for Nano Stores",
   "keywords": [
     "finite-state-machine",
