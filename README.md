@@ -28,6 +28,14 @@ Requires Node.js 20 or later.
 pnpm add nanostores @alexcarpenter/machine
 ```
 
+### Agent skill
+
+Install the consumer usage skill for supported coding agents:
+
+```sh
+npx skills add alexcarpenter/machine
+```
+
 ## Guide
 
 ### Context and transitions
